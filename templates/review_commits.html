@@ -1,0 +1,14 @@
+This is the page where you review commits.
+
+<p>
+<ul>
+{% for userbundle in commit_list %}
+	<li>{{ userbundle['username'] }}</li>
+	<ul>
+	{% for urlmsg in userbundle['url_msgs'] %}
+		<li><a href="{{ urlmsg['url'] }}">{{  urlmsg['msg'] }}</a></li>
+	{% endfor %}
+	</ul>
+{% endfor %}
+</ul>
+</p>
