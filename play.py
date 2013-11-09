@@ -44,7 +44,11 @@ def logout():
 
 @app.route('/review')
 def review_commits():
-    list_to_rev = ["ameena12-meet", "hind12-meet"]
+    y1 = []
+    y2 = ["ameena12", "hind12"]
+    def meetify(inp):
+        return inp + "-meet"
+    list_to_rev = map(meetify, y2)
     repo_name = "MEET-YL2"
     c = []
     for username in list_to_rev:
