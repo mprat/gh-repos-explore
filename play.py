@@ -38,6 +38,7 @@ class Commit(db.Model):
         self.url = url
 
 
+
 @app.before_request
 def before_request():
     g.token = None
@@ -74,7 +75,6 @@ def get_all_commits():
         return inp + "-meet"
     list_to_rev = map(meetify, y2a)
     repo_name = "MEET-YL2"
-    c = []
     for username in list_to_rev:
         all_commits = github.get('repos/' + username + '/' + repo_name + '/commits')
         url_msgs = []
