@@ -32,7 +32,7 @@ var commit_list_func = function(){
 						$('#user' + user['id']).append(ulist2);
 						$.each(user['commits'], function(index, commit){
 							if (!(commit['reviewed'])){
-								var ielem2 = '<li id=u' + user["id"] + 'commit'+ commit['id'] + '>' + commit['time'] + '<a href=' + commit['url'] + '>' + commit['commit_msg'] + '</a> <form action="/markreviewed" method="post"><input type="submit" name="mark" value="mark as reviewed"><input type="hidden" name="shahash" value=' + commit['sha'] + '></form></li>';
+								var ielem2 = '<li id=u' + user["id"] + 'commit'+ commit['id'] + '>' + commit['time'] + '  <a href=' + commit['url'] + '>' + commit['commit_msg'] + '</a> <form action="/markreviewed" method="post"><input type="submit" name="mark" value="mark as reviewed"><input type="hidden" name="shahash" value=' + commit['sha'] + '></form></li>';
 								$('#ucommitlist' + user["id"]).append(ielem2);
 							}
 						});

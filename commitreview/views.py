@@ -59,7 +59,10 @@ def get_commits_to_review():
         filter_list = filter_list.split(",")
         for f in filter_list:
             temptag=Tag.query.filter_by(text=f.strip()).first()
-            u.extend(User.query.filter(User.tags.contains(temptag)).all())
+            tempu = User.query.filter(User.tags.contains(temptag)).all()
+            for temp_tempu in tempu:
+                if temp_tempu not in u:
+                    u.append(temp_tempu)
     else:
         u = User.query.order_by(User.username).all()
 
