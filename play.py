@@ -22,22 +22,40 @@ github = GitHub(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///commits.db'
 db = SQLAlchemy(app)
 
+tags = db.Table('tags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
+)
+
 class Commit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sha = db.Column(db.String(80), unique=True)
-    author = db.Column(db.String(80))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     time = db.Column(db.DateTime)
     commit_msg = db.Column(db.Text)
     url = db.Column(db.Text)
     reviewed = db.Column(db.Boolean, default=False)
-    def __init__(self, author, time, commit_msg, sha, url):
+
+    def __init__(self, author_id, time, commit_msg, sha, url):
         self.sha = sha
-        self.author = author
         self.time = dateutil.parser.parse(time)
         self.commit_msg = commit_msg
         self.url = url
+        self.user_id = author_id
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True)
+    commits = db.relationship('Commit', backref='user')
+    tags = db.relationship('Tag', secondary=tags,
+        backref='user')
 
+    def __init__(self, name):
+        self.username = name
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(20), unique=True)
 
 @app.before_request
 def before_request():
@@ -63,7 +81,7 @@ def logout():
 
 @app.route('/review')
 def review_commits():
-    c = Commit.query.filter_by(reviewed=False).order_by(Commit.author)
+    c = Commit.query.filter_by(reviewed=False)#.order_by(Commit.user)
     return render_template("review_commits.html", commit_list=c)
 
 @app.route('/query')
@@ -75,7 +93,8 @@ def get_all_commits():
         return inp + "-meet"
     list_to_rev = map(meetify, y2a)
     repo_name = "MEET-YL2"
-    for username in list_to_rev:
+    for user in User.query.all():
+        username = user.username
         all_commits = github.get('repos/' + username + '/' + repo_name + '/commits')
         url_msgs = []
         for commit in all_commits:
@@ -84,7 +103,7 @@ def get_all_commits():
                 url = commit['html_url']
                 msg = commit['commit']['message']
                 date = commit['commit']['author']['date']
-                author = username
+                author = user.id
                 new_commit = Commit(author, date, msg, sha, url)
                 db.session.add(new_commit)
                 db.session.commit()
