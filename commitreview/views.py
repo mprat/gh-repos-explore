@@ -1,14 +1,17 @@
-from flask import Flask 
+# from flask import Flask 
 from flask import render_template, url_for, session, redirect, request, g
 
+from commitreview import app
+from commitreview.models import db, User, Commit, Tag
+
 from flask.ext.github import GitHub
-from flask.ext.sqlalchemy import SQLAlchemy
+# from flask.ext.sqlalchemy import SQLAlchemy
 
 import json
 import dateutil.parser
 
-app = Flask(__name__)
-app.config.from_object(__name__)
+# app = Flask(__name__)
+# app.config.from_object(__name__)
 
 app.config['GITHUB_CLIENT_ID'] = 'b6603acaf2227fa9c3b5'
 app.config['GITHUB_CLIENT_SECRET'] = '8c58928560451849455566f5bf1489d93fab3182'
@@ -20,42 +23,7 @@ github = GitHub(app)
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///commits.db'
-db = SQLAlchemy(app)
 
-tags = db.Table('tags',
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'))
-)
-
-class Commit(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sha = db.Column(db.String(80), unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    time = db.Column(db.DateTime)
-    commit_msg = db.Column(db.Text)
-    url = db.Column(db.Text)
-    reviewed = db.Column(db.Boolean, default=False)
-
-    def __init__(self, author_id, time, commit_msg, sha, url):
-        self.sha = sha
-        self.time = dateutil.parser.parse(time)
-        self.commit_msg = commit_msg
-        self.url = url
-        self.user_id = author_id
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    commits = db.relationship('Commit', backref='user')
-    tags = db.relationship('Tag', secondary=tags,
-        backref='user')
-
-    def __init__(self, name):
-        self.username = name
-
-class Tag(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String(20), unique=True)
 
 @app.before_request
 def before_request():
@@ -81,20 +49,16 @@ def logout():
 
 @app.route('/review')
 def review_commits():
-    c = Commit.query.filter_by(reviewed=False)#.order_by(Commit.user)
-    return render_template("review_commits.html", commit_list=c)
+    c = Commit.query.filter_by(reviewed=False)
+    u = User.query.order_by(User.username)
+    t = Tag.query.all()
+    return render_template("review_commits.html", commit_list=c, user_list=u, tags_list=t)
 
 @app.route('/query')
 def get_all_commits():
-    y1 = []
-    y2a = ["angelina12", "costas12", "ido12", "kais12", "kochava12", "nadeen12", "nadine12", "natalie12", "nina12", "omar12", "omer12", "omri12", "revital12", "ronl12", "sagi12", "waseem12", "yarden12", "yasmine12"]
-    y2b = ["ameena12", "hind12"]
-    def meetify(inp):
-        return inp + "-meet"
-    list_to_rev = map(meetify, y2a)
-    repo_name = "MEET-YL2"
     for user in User.query.all():
         username = user.username
+        repo_name = user.repo
         all_commits = github.get('repos/' + username + '/' + repo_name + '/commits')
         url_msgs = []
         for commit in all_commits:

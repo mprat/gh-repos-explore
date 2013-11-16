@@ -1,0 +1,25 @@
+This is the page where you review commits.
+<form action="/query" method="get"><input type="submit" value="query for commits"></form>
+
+{% if tags_list %}
+	{% for tag in tags_list %}
+		<input type="checkbox" name="{{ tag.text }}">{{ tag.text }}
+	{% endfor %}
+{% endif %}
+
+<p>
+<ul>
+{% if user_list %}
+	{% for user in user_list %}
+		<li>{{ user.username }}</li>
+		<ul>
+			{% for commit in user.commits %}
+				{% if not commit.reviewed %}
+					<li>{{ commit.time }}<a href="{{ commit.url }}"> {{  commit.commit_msg }}</a> <form action="/markreviewed" method="post"><input type="submit" name="mark" value="mark as reviewed"><input type="hidden" name="shahash" value="{{ commit.sha }}"></form></li>
+				{% endif %}
+			{% endfor %}
+		</ul>
+	{% endfor %}
+{% endif %}
+</ul>
+</p>
