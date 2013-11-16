@@ -4,7 +4,7 @@ from flask import render_template, url_for, session, redirect, request, g, jsoni
 from commitreview import app
 from commitreview.models import db, User, Commit, Tag
 
-from flask.ext.github import GitHub
+from flask.ext.github import GitHub, GitHubError
 # from flask.ext.sqlalchemy import SQLAlchemy
 
 import json
@@ -80,7 +80,10 @@ def get_all_commits():
     for user in User.query.all():
         username = user.username
         repo_name = user.repo
-        all_commits = github.get('repos/' + username + '/' + repo_name + '/commits')
+        try:
+            all_commits = github.get('repos/' + username + '/' + repo_name + '/commits')
+        except GitHubError:
+            all_commits = []
         url_msgs = []
         for commit in all_commits:
             sha = commit['sha']

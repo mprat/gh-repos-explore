@@ -11,6 +11,7 @@ def addtags(listoftags, user):
             db.session.commit()
         if t not in user.tags:
             user.tags.append(t)
+            db.session.commit()
 
 if __name__=="__main__":
     filename = sys.argv[1]
@@ -23,8 +24,8 @@ if __name__=="__main__":
             u = User(uname, reponame)
             addtags(row[1:], u)
             db.session.add(u)
+            db.session.commit()
         else: 
             addtags(row[1:], User.query.filter_by(username=uname).first())
-        
-    db.session.commit()
+            db.session.commit()
     f.close()
