@@ -63,13 +63,14 @@ def get_commits_to_review():
     else:
         u = User.query.order_by(User.username).all()
 
-    return jsonify({'user_list': [i.serialize for i in u]})
+    return jsonify({'user_list': [i.serialize for i in u], 'commit_list': [i.serialize for i in c]})
     # return jsonify({'commit_list': c, 'user_list': u, 'tags_list': t})
     # return render_template("review_commits.html", commit_list=c, user_list=u, tags_list=t)
 
 @app.route('/review')
 def review_commits():
-    return render_template("review_commits.html")
+    t = Tag.query.all()
+    return render_template("review_commits.html", tags_list=t)
 
 @app.route('/query')
 def get_all_commits():
