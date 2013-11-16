@@ -2,8 +2,10 @@ from flask import Flask
 from flask import render_template, url_for, session, redirect, request, g
 
 from flask.ext.github import GitHub
+from flask.ext.sqlalchemy import SQLAlchemy
 
 import json
+import dateutil.parser
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -16,9 +18,25 @@ app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
 github = GitHub(app)
 
-# class User():
-#     def __init__(self, github_token):
-#         self.github_access_token = github_token
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///commits.db'
+db = SQLAlchemy(app)
+
+class Commit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sha = db.Column(db.String(80), unique=True)
+    author = db.Column(db.String(80))
+    time = db.Column(db.DateTime)
+    commit_msg = db.Column(db.Text)
+    url = db.Column(db.Text)
+    reviewed = db.Column(db.Boolean, default=False)
+    def __init__(self, author, time, commit_msg, sha, url):
+        self.sha = sha
+        self.author = author
+        self.time = dateutil.parser.parse(time)
+        self.commit_msg = commit_msg
+        self.url = url
+
 
 @app.before_request
 def before_request():
@@ -44,21 +62,42 @@ def logout():
 
 @app.route('/review')
 def review_commits():
+    c = Commit.query.filter_by(reviewed=False).order_by(Commit.author)
+    return render_template("review_commits.html", commit_list=c)
+
+@app.route('/query')
+def get_all_commits():
     y1 = []
-    y2 = ["ameena12", "hind12"]
+    y2a = ["angelina12", "costas12", "ido12", "kais12", "kochava12", "nadeen12", "nadine12", "natalie12", "nina12", "omar12", "omer12", "omri12", "revital12", "ronl12", "sagi12", "waseem12", "yarden12", "yasmine12"]
+    y2b = ["ameena12", "hind12"]
     def meetify(inp):
         return inp + "-meet"
-    list_to_rev = map(meetify, y2)
+    list_to_rev = map(meetify, y2a)
     repo_name = "MEET-YL2"
     c = []
     for username in list_to_rev:
         all_commits = github.get('repos/' + username + '/' + repo_name + '/commits')
         url_msgs = []
         for commit in all_commits:
-            url_msg = {'url': commit['html_url'], 'msg': commit['commit']['message']}
-            url_msgs.append(url_msg)
-        c.append({'username': username, 'url_msgs': url_msgs})
-    return render_template("review_commits.html", commit_list=c)
+            sha = commit['sha']
+            if Commit.query.filter_by(sha=sha).first() is None:
+                url = commit['html_url']
+                msg = commit['commit']['message']
+                date = commit['commit']['author']['date']
+                author = username
+                new_commit = Commit(author, date, msg, sha, url)
+                db.session.add(new_commit)
+                db.session.commit()
+    return redirect(url_for('review_commits'))
+
+@app.route('/markreviewed', methods=['POST'])
+def mark_reviewed():
+    h = request.form['shahash']
+    print h
+    c = Commit.query.filter_by(sha=h).first()
+    c.reviewed = True
+    db.session.commit()
+    return redirect(url_for('review_commits'))
 
 @github.access_token_getter
 def token_getter():

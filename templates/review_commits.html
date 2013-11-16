@@ -2,13 +2,8 @@ This is the page where you review commits.
 
 <p>
 <ul>
-{% for userbundle in commit_list %}
-	<li>{{ userbundle['username'] }}</li>
-	<ul>
-	{% for urlmsg in userbundle['url_msgs'] %}
-		<li><a href="{{ urlmsg['url'] }}">{{  urlmsg['msg'] }}</a></li>
-	{% endfor %}
-	</ul>
+{% for commit in commit_list %}
+	<li>{{ commit.author }}: {{ commit.time }}<a href="{{ commit.url }}"> {{  commit.commit_msg }}</a> <form action="/markreviewed" method="post"><input type="submit" name="mark"><input type="hidden" name="shahash" value="{{ commit.sha }}"></form></li>
 {% endfor %}
 </ul>
 </p>
