@@ -47,7 +47,7 @@ def logout():
     session.pop('github_token', None)
     return redirect(url_for('index'))
 
-@app.route('/review_temp', methods=['GET'])
+@app.route('/review_ajax', methods=['GET'])
 def get_commits_to_review():
     filter_list = request.args.get('filter_list', 0, type=str)
 
