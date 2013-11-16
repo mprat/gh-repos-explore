@@ -1,5 +1,5 @@
 # from flask import Flask 
-from flask import render_template, url_for, session, redirect, request, g
+from flask import render_template, url_for, session, redirect, request, g, jsonify
 
 from commitreview import app
 from commitreview.models import db, User, Commit, Tag
@@ -47,12 +47,25 @@ def logout():
     session.pop('github_token', None)
     return redirect(url_for('index'))
 
-@app.route('/review')
+@app.route('/review', methods=['GET'])
 def review_commits():
+    filter_list = request.args.get('filter_list', 0, type=str)
+
     c = Commit.query.filter_by(reviewed=False)
-    u = User.query.order_by(User.username)
+    u = []
     t = Tag.query.all()
-    return render_template("review_commits.html", commit_list=c, user_list=u, tags_list=t)
+
+    if filter_list:
+        filter_list = filter_list.split(",")
+        for f in filter_list:
+            temptag=Tag.query.filter_by(text=f.strip()).first()
+            u.extend(User.query.filter(User.tags.contains(temptag)).all())
+    else:
+        u = User.query.order_by(User.username).all()
+
+    return jsonify({'user_list': [i.serialize for i in u]})
+    # return jsonify({'commit_list': c, 'user_list': u, 'tags_list': t})
+    # return render_template("review_commits.html", commit_list=c, user_list=u, tags_list=t)
 
 @app.route('/query')
 def get_all_commits():

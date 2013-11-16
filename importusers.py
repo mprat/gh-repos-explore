@@ -3,6 +3,7 @@ import sys, csv
 
 def addtags(listoftags, user):
     for tag in listoftags:
+        tag = tag.strip()
         t = Tag.query.filter_by(text=tag).first()
         if t is None:
             t = Tag(tag)
