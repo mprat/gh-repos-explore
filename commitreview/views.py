@@ -47,8 +47,8 @@ def logout():
     session.pop('github_token', None)
     return redirect(url_for('index'))
 
-@app.route('/review', methods=['GET'])
-def review_commits():
+@app.route('/review_temp', methods=['GET'])
+def get_commits_to_review():
     filter_list = request.args.get('filter_list', 0, type=str)
 
     c = Commit.query.filter_by(reviewed=False)
@@ -66,6 +66,10 @@ def review_commits():
     return jsonify({'user_list': [i.serialize for i in u]})
     # return jsonify({'commit_list': c, 'user_list': u, 'tags_list': t})
     # return render_template("review_commits.html", commit_list=c, user_list=u, tags_list=t)
+
+@app.route('/review')
+def review_commits():
+    return render_template("review_commits.html")
 
 @app.route('/query')
 def get_all_commits():
