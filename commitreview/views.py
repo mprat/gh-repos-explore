@@ -5,7 +5,10 @@ from commitreview import app
 from commitreview.models import db, User, Commit, Tag
 
 from flask.ext.github import GitHub, GitHubError
+from flask.ext.admin import Admin
 # from flask.ext.sqlalchemy import SQLAlchemy
+
+from flask.ext.admin.contrib.sqla import ModelView
 
 import json
 import dateutil.parser
@@ -20,7 +23,11 @@ app.config['GITHUB_CALLBACK_URL'] = 'http://localhost:5000/github-callback'
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
 github = GitHub(app)
+admin = Admin(app)
 
+admin.add_view(ModelView(User, db.session))
+admin.add_view(ModelView(Commit, db.session))
+admin.add_view(ModelView(Tag, db.session))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///commits.db'
 
