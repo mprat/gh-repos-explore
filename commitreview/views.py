@@ -58,7 +58,7 @@ def logout():
 def get_commits_to_review():
     filter_list = request.args.get('filter_list', 0, type=str)
 
-    c = Commit.query.filter_by(reviewed=False)
+    c = (Commit.query.filter_by(reviewed=False)).order_by(Commit.time)
     u = []
     t = Tag.query.all()
 

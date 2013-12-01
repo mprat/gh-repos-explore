@@ -25,7 +25,7 @@ var commit_list_func = function(){
 				$('#data').append(ulist);
 				$.each(data['user_list'], function(index, user){
 					// make IL element for each user
-					var ielem = '<li id=user' + user["id"] + '>' + user["username"] + '</li>';
+					var ielem = '<li id=user' + user["id"] + '><a href="http://github.com/' + user["username"] + '/' + user["repo"] + '">' + user["username"] + '</a></li>';
 					$('#ulist').append(ielem);
 					if (user['commits']){
 						var ulist2 = '<ul id="ucommitlist' + user['id'] + '"></ul>';
