@@ -12,6 +12,7 @@ from flask.ext.admin.contrib.sqla import ModelView
 
 import json
 import dateutil.parser
+import requests
 
 # app = Flask(__name__)
 # app.config.from_object(__name__)
@@ -111,6 +112,22 @@ def mark_reviewed():
     c = Commit.query.filter_by(sha=h).first()
     c.reviewed = True
     db.session.commit()
+    return redirect(url_for('review_commits'))
+
+@app.route('/addcollabtoall')
+def add_collab():
+    t=Tag.query.filter_by(text="Abroad").first()
+    for user in User.query.filter(User.tags.contains(t)).all():
+        username = user.username
+        repo = user.repo
+        passwd = ""
+        if repo == "MEET-YL1":
+            passwd = "meetyear13"
+        else: 
+            passwd = "meetyear2"
+        r = requests.put('https://api.github.com/repos/' + username + '/' + repo + '/collaborators/mprat', auth=(username, passwd))
+        print username, " for ", repo
+        print r.headers
     return redirect(url_for('review_commits'))
 
 @github.access_token_getter
